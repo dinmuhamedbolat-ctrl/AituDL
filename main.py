@@ -5,6 +5,7 @@
 import asyncio
 from datetime import datetime
 from datetime import datetime, timedelta
+from aiohttp import web
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -138,6 +139,30 @@ async def scheduler_init():
     return scheduler
 
 
+async def handle(request):
+    """
+    Обработчик для веб-сервера (пингер).
+    Возвращает простой ответ, чтобы хостинг не уводил бота в спящий режим.
+    """
+    return web.Response(text="Bot is alive!")
+
+
+async def start_web_server():
+    """
+    Запускает простой асинхронный веб-сервер.
+    Позволяет хостингу пингировать бота и не переводить его в спящий режим.
+    """
+    app = web.Application()
+    app.router.add_get("/", handle)
+    
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", 10000)
+    await site.start()
+    
+    logger.info("🌐 Веб-сервер (пингер) запущен на порту 10000")
+
+
 async def main():
     """
     Главная функция для запуска бота.
@@ -165,6 +190,9 @@ async def main():
             run_date=datetime.now() + timedelta(seconds=5),
             id='first_check'
         )
+        
+        # Запускаем веб-сервер в фоне (пингер для хостинга)
+        asyncio.create_task(start_web_server())
         
         # Пытаемся получить информацию о боте
         me = await bot.get_me()
