@@ -151,7 +151,7 @@ async def cmd_check(message: Message):
     if not ical_url:
         await message.answer(
             "❌ У вас нет сохраненной ссылки на календарь.\n\n"
-            "Используйте /set_link, чтобы добавить свой iCal-фид из Canvas."
+            "Используйте /set_link, чтобы добавить свой URL ИЗ Moodle."
         )
         return
     
